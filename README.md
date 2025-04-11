@@ -50,24 +50,15 @@ model: anthropic/claude-3-5-sonnet-20240620
 
 Follow the instructions below to get set up, or pick one of the additional options.
 
-#### Anthropic
+#### Mistral AI
 
-To use Anthropic's chat models:
+To use Mistral's chat models:
 
-1. Sign up for an [Anthropic API key](https://console.anthropic.com/) if you haven't already.
+1. Sign up for a [Mistral API key](https://console.mistral.ai/) if you haven't already.
 2. Once you have your API key, add it to your `.env` file:
 
 ```
-ANTHROPIC_API_KEY=your-api-key
-```
-#### OpenAI
-
-To use OpenAI's chat models:
-
-1. Sign up for an [OpenAI API key](https://platform.openai.com/signup).
-2. Once you have your API key, add it to your `.env` file:
-```
-OPENAI_API_KEY=your-api-key
+MISTRAL_API_KEY=your-api-key
 ```
 
 
