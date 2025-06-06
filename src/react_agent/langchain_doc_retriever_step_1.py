@@ -1,17 +1,31 @@
-# Import this file in your agent and check the logs when running the app
-# https://docs.trychroma.com/docs/overview/getting-started
-import chromadb
-chroma_client = chromadb.Client()
-collection = chroma_client.create_collection(name="test_collection")
-collection.add(
-     documents=[
-        "This is a document about pineapple",
-        "This is a document about oranges"
-    ],
-    ids=["id1", "id2"]
+from langchain_chroma import Chroma
+from chromadb.utils import embedding_functions
+from langchain_core.documents import Document
+
+class ChromaEmbeddings:
+    def __init__(self):
+        self.embd=embedding_functions.DefaultEmbeddingFunction()
+    def embed_query(self, query):
+        return self.embd([query])[0]
+    def embed_documents(self,docs):
+        return self.embd(docs)
+
+embeddings=ChromaEmbeddings()
+
+documents=[
+    Document("LangChain invokes LLMs"),
+    Document("LangGraph runs agents")
+]
+
+vector_store = Chroma(
+    collection_name="example_collection",
+    embedding_function=embeddings,
 )
-results = collection.query(
-    query_texts=["This is a query document about hawaii"], # Chroma will embed this for you
-    n_results=2 # how many results to return
-)
-print(results)
+vector_store.add_documents(documents)
+retriever=vector_store.as_retriever(search_kwargs={
+    "k":1
+})
+res=retriever.invoke("What is LangChain?")
+print(res)
+res=retriever.invoke("What is LangGraph?")
+print(res)
