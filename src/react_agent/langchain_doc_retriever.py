@@ -1,52 +1,35 @@
-# Inspired from LangSmith academy utils
-# https://github.com/langchain-ai/intro-to-langsmith/blob/main/notebooks/module_1/utils.py
-# https://github.com/langchain-ai/intro-to-langsmith/blob/a61b50fc7035af9ac5958a18a9131cee84c1373b/notebooks/module_1/utils.py
-# TODO: adapt to ChromaDB + Mistral embeddings (if they work)
-import os
-import tempfile
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders.sitemap import SitemapLoader
-from langchain_community.vectorstores import SKLearnVectorStore
-from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma
+from chromadb.utils import embedding_functions
+from langchain_core.documents import Document
 
-RAG_PROMPT = """You are an assistant for question-answering tasks. 
-Use the following pieces of retrieved context to answer the latest question in the conversation. 
-If you don't know the answer, just say that you don't know. 
-The pre-existing conversation may provide important context to the question.
-Use three sentences maximum and keep the answer concise.
+# Chroma provides a default embedding function
+# But it is not used in LangGraph => we write a quick dummy wrapper to reuse this function
+# @see https://docs.trychroma.com/docs/embeddings/embedding-functions#custom-embedding-functions
+# TODO: ideally, the Chroma vector store should use this function as a default
+# TODO: we could add explicit errors for the async functions
+class ChromaEmbeddings:
+    def __init__(self):
+        self.embd=embedding_functions.DefaultEmbeddingFunction()
+    def embed_query(self, query):
+        return self.embd([query])[0]
+    def embed_documents(self,docs):
+        return self.embd(docs)
+embeddings=ChromaEmbeddings()
 
-Conversation: {conversation}
-Context: {context} 
-Question: {question}
-Answer:"""
+documents=[
+    Document("LangChain invokes LLMs"),
+    Document("LangGraph runs agents")
+]
 
-def get_vector_db_retriever():
-    persist_path = os.path.join(tempfile.gettempdir(), "union.parquet")
-    embd = OpenAIEmbeddings()
-
-    # If vector store exists, then load it
-    if os.path.exists(persist_path):
-        vectorstore = SKLearnVectorStore(
-            embedding=embd,
-            persist_path=persist_path,
-            serializer="parquet"
-        )
-        return vectorstore.as_retriever(lambda_mult=0)
-
-    # Otherwise, index LangSmith documents and create new vector store
-    ls_docs_sitemap_loader = SitemapLoader(web_path="https://docs.smith.langchain.com/sitemap.xml", continue_on_failure=True)
-    ls_docs = ls_docs_sitemap_loader.load()
-
-    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=500, chunk_overlap=0
-    )
-    doc_splits = text_splitter.split_documents(ls_docs)
-
-    vectorstore = SKLearnVectorStore.from_documents(
-        documents=doc_splits,
-        embedding=embd,
-        persist_path=persist_path,
-        serializer="parquet"
-    )
-    vectorstore.persist()
-    return vectorstore.as_retriever(lambda_mult=0)
+vector_store = Chroma(
+    collection_name="example_collection",
+    embedding_function=embeddings,
+)
+vector_store.add_documents(documents)
+retriever=vector_store.as_retriever(search_kwargs={
+    "k":1
+})
+res_langchain=retriever.invoke("What is LangChain?")[0]
+res_langgraph=retriever.invoke("What is LangGraph?")[0]
+print(f"Expects LangChain document, got {res_langchain}")
+print(f"Expects LangGraph document, got {res_langgraph}")

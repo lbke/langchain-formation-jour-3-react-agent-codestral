@@ -3,8 +3,9 @@
 Works with a chat model with tool calling support.
 """
 # Should log a ChromaDB query
-import react_agent.chroma_demo
-import react_agent.langchain_doc_retriever_step_1
+# Just here for the demo
+# import react_agent.chroma_demo
+# import react_agent.langchain_doc_retriever
 
 from datetime import datetime, timezone
 from typing import Dict, List, Literal, cast
