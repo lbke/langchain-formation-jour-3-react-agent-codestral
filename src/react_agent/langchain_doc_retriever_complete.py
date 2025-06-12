@@ -11,6 +11,12 @@ from langchain_community.document_loaders.sitemap import SitemapLoader
 from langchain_chroma import Chroma
 # from langchain_openai import OpenAIEmbeddings
 from chromadb.utils import embedding_functions
+
+# https://docs.trychroma.com/production/deployment
+import chromadb
+# Example setup of the client to connect to your chroma server
+# client = chromadb.HttpClient(host='localhost', port=8000)
+
 # Chroma provides a default embedding function
 # But it is not used in LangGraph => we write a quick dummy wrapper to reuse this function
 # @see https://docs.trychroma.com/docs/embeddings/embedding-functions#custom-embedding-functions
@@ -41,6 +47,8 @@ def get_langsmith_doc_retriever():
         vectorstore = Chroma(
             embedding_function=embd,
             persist_directory=persist_directory,
+            # To use an HTTP Chroma client rather than a local directory
+            # client=client
         )
         return vectorstore.as_retriever(lambda_mult=0)
     
