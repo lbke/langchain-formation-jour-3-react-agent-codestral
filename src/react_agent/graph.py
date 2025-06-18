@@ -19,6 +19,8 @@ from react_agent.configuration import Configuration
 from react_agent.state import InputState, State
 from react_agent.tools import TOOLS
 from react_agent.utils import load_chat_model
+# Bonus : setting up an anonymizer
+from react_agent.anonymizer import langsmith_client
 
 # Define the function that calls the model
 
@@ -52,6 +54,7 @@ async def call_model(
         AIMessage,
         await model.ainvoke(
             [{"role": "system", "content": system_message}, *state.messages], config
+            #langsmith_extra={"client": langsmith_client}
         ),
     )
 

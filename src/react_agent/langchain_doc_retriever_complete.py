@@ -13,7 +13,7 @@ from langchain_chroma import Chroma
 from chromadb.utils import embedding_functions
 
 # https://docs.trychroma.com/production/deployment
-import chromadb
+# import chromadb
 # Example setup of the client to connect to your chroma server
 # client = chromadb.HttpClient(host='localhost', port=8000)
 
@@ -66,7 +66,8 @@ def get_langsmith_doc_retriever():
     #vectorstore = SKLearnVectorStore.from_documents(
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
-            embedding_function=embd,
+        # (not embedding_function but embedding)
+        embedding=embd,
         persist_directory=persist_directory,
     )
     print(f"Done persisting LangSmith documentation in {persist_directory}")
