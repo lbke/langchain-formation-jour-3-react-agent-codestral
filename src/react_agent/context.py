@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field, fields
-from typing import Annotated, Optional
+from typing import Annotated
 
-from langchain_core.runnables import RunnableConfig, ensure_config
-
-from react_agent import prompts
+from . import prompts
 
 
 @dataclass(kw_only=True)
-class Configuration:
-    """The configuration for the agent."""
+class Context:
+    """The context for the agent."""
 
     system_prompt: str = field(
         default=prompts.SYSTEM_PROMPT,
@@ -23,7 +22,7 @@ class Configuration:
     )
 
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="mistralai/codestral-latest",
+        default="mistralai/codestral-latest",  # "anthropic/claude-3-5-sonnet-20240620",
         metadata={
             "description": "The name of the language model to use for the agent's main interactions. "
             "Should be in the form: provider/model-name."
@@ -37,12 +36,12 @@ class Configuration:
         },
     )
 
-    @classmethod
-    def from_runnable_config(
-        cls, config: Optional[RunnableConfig] = None
-    ) -> Configuration:
-        """Create a Configuration instance from a RunnableConfig object."""
-        config = ensure_config(config)
-        configurable = config.get("configurable") or {}
-        _fields = {f.name for f in fields(cls) if f.init}
-        return cls(**{k: v for k, v in configurable.items() if k in _fields})
+    def __post_init__(self) -> None:
+        """Fetch env vars for attributes that were not passed as args."""
+        for f in fields(self):
+            if not f.init:
+                continue
+
+            if getattr(self, f.name) == f.default:
+                setattr(self, f.name, os.environ.get(
+                    f.name.upper(), f.default))

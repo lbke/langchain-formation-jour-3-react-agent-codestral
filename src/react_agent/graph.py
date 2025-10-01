@@ -6,11 +6,12 @@ from datetime import datetime, timezone
 from typing import Dict, List, Literal, cast
 
 from langchain_core.messages import AIMessage
-from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode
+from langgraph.runtime import Runtime
 
-from react_agent.configuration import Configuration
+
+from react_agent.context import Context
 from react_agent.state import InputState, State
 from react_agent.tools import TOOLS
 from react_agent.utils import load_chat_model
@@ -21,7 +22,7 @@ from react_agent.utils import load_chat_model
 
 
 async def call_model(
-    state: State, config: RunnableConfig
+    state: State, runtime: Runtime[Context]
 ) -> Dict[str, List[AIMessage]]:
     """Call the LLM powering our "agent".
 
@@ -34,13 +35,12 @@ async def call_model(
     Returns:
         dict: A dictionary containing the model's response message.
     """
-    configuration = Configuration.from_runnable_config(config)
 
     # Initialize the model with tool binding. Change the model or add more tools here.
-    model = load_chat_model(configuration.model).bind_tools(TOOLS)
+    model = load_chat_model(runtime.context.model).bind_tools(TOOLS)
 
     # Format the system prompt. Customize this to change the agent's behavior.
-    system_message = configuration.system_prompt.format(
+    system_message = runtime.context.system_prompt.format(
         system_time=datetime.now(tz=timezone.utc).isoformat()
     )
 
@@ -48,7 +48,7 @@ async def call_model(
     response = cast(
         AIMessage,
         await model.ainvoke(
-            [{"role": "system", "content": system_message}, *state.messages], config
+            [{"role": "system", "content": system_message}, *state.messages]
             # langsmith_extra={"client": langsmith_client}
         ),
     )
@@ -70,8 +70,7 @@ async def call_model(
 
 # Define a new graph
 
-builder = StateGraph(State, input=InputState, config_schema=Configuration)
-
+builder = StateGraph(State, input=InputState, context_schema=Context)
 # Define the two nodes we will cycle between
 builder.add_node(call_model)
 builder.add_node("tools", ToolNode(TOOLS))
