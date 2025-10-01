@@ -43,7 +43,7 @@ async def search(query: str) -> Optional[list[dict[str, Any]]]:
 
 @tool
 def search_langchain(
-    query: str  # , *, config: Annotated[RunnableConfig, InjectedToolArg]
+    query: str
 ) -> Optional[list[dict[str, Any]]]:
     """Search in LangChain and LangGraph official documentation.
 
