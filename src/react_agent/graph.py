@@ -2,11 +2,6 @@
 
 Works with a chat model with tool calling support.
 """
-# Should log a ChromaDB query
-# Just here for the demo
-# import react_agent.chroma_demo
-# import react_agent.langchain_doc_retriever
-
 from datetime import datetime, timezone
 from typing import Dict, List, Literal, cast
 
@@ -20,7 +15,7 @@ from react_agent.state import InputState, State
 from react_agent.tools import TOOLS
 from react_agent.utils import load_chat_model
 # Bonus : setting up an anonymizer
-from react_agent.anonymizer import langsmith_client
+# from react_agent.anonymizer import langsmith_client
 
 # Define the function that calls the model
 
@@ -54,7 +49,7 @@ async def call_model(
         AIMessage,
         await model.ainvoke(
             [{"role": "system", "content": system_message}, *state.messages], config
-            #langsmith_extra={"client": langsmith_client}
+            # langsmith_extra={"client": langsmith_client}
         ),
     )
 

@@ -22,13 +22,18 @@ from chromadb.utils import embedding_functions
 # @see https://docs.trychroma.com/docs/embeddings/embedding-functions#custom-embedding-functions
 # TODO: ideally, the Chroma vector store should use this function as a default
 # TODO: we could add explicit errors for the async functions
+
+
 class ChromaEmbeddings:
     def __init__(self):
-        self.embd=embedding_functions.DefaultEmbeddingFunction()
+        self.embd = embedding_functions.DefaultEmbeddingFunction()
+
     def embed_query(self, query):
         return self.embd([query])[0]
-    def embed_documents(self,docs):
+
+    def embed_documents(self, docs):
         return self.embd(docs)
+
 
 def get_langsmith_doc_retriever():
     """
@@ -37,12 +42,13 @@ def get_langsmith_doc_retriever():
     Will cache the Chroma database in a tmp folder
     """
     persist_directory = os.path.join(tempfile.gettempdir(), "langsmith_docs")
-    #embd = OpenAIEmbeddings()
+    # embd = OpenAIEmbeddings()
     embd = ChromaEmbeddings()
 
     # If vector store exists, then load it
     if os.path.exists(persist_directory):
-        print(f"Found LangSmith documentation for Chroma in {persist_directory}, will load it")
+        print(
+            f"Found LangSmith documentation for Chroma in {persist_directory}, will load it")
         # vectorstore = SKLearnVectorStore(
         vectorstore = Chroma(
             embedding_function=embd,
@@ -51,11 +57,13 @@ def get_langsmith_doc_retriever():
             # client=client
         )
         return vectorstore.as_retriever(lambda_mult=0)
-    
-    print(f"Ingesting LangSmith documentation, persisting in {persist_directory}")
+
+    print(
+        f"Ingesting LangSmith documentation, persisting in {persist_directory}")
 
     # Otherwise, index LangSmith documents and create new vector store
-    ls_docs_sitemap_loader = SitemapLoader(web_path="https://docs.smith.langchain.com/sitemap.xml", continue_on_failure=True)
+    ls_docs_sitemap_loader = SitemapLoader(
+        web_path="https://docs.smith.langchain.com/sitemap.xml", continue_on_failure=True)
     ls_docs = ls_docs_sitemap_loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
@@ -63,7 +71,7 @@ def get_langsmith_doc_retriever():
     )
     doc_splits = text_splitter.split_documents(ls_docs)
 
-    #vectorstore = SKLearnVectorStore.from_documents(
+    # vectorstore = SKLearnVectorStore.from_documents(
     vectorstore = Chroma.from_documents(
         documents=doc_splits,
         # (not embedding_function but embedding)
@@ -72,4 +80,3 @@ def get_langsmith_doc_retriever():
     )
     print(f"Done persisting LangSmith documentation in {persist_directory}")
     return vectorstore.as_retriever(lambda_mult=0)
-

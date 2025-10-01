@@ -16,14 +16,16 @@ from typing_extensions import Annotated
 from react_agent.configuration import Configuration
 
 # Test version with 2 dummy docs about LangChain and LangGraph
-# from react_agent.langchain_doc_retriever import retriever
+from react_agent.langchain_doc_retriever import get_langchain_doc_retriever
 # Version that actually loads LangChain documentation
-from react_agent.langchain_doc_retriever_complete import get_langsmith_doc_retriever
+from react_agent.langsmith_doc_retriever_complete import get_langsmith_doc_retriever
 
 # Uncomment to ingest actual LangChain doc,
 # it will take some time to run on the first iteration (in minutes)
 # result = langsmith_doc_retriever.invoke(query)
-langsmith_doc_retriever=get_langsmith_doc_retriever()
+langchain_doc_retriever = get_langchain_doc_retriever()
+langsmith_doc_retriever = get_langsmith_doc_retriever()
+
 
 async def search(
     query: str, *, config: Annotated[RunnableConfig, InjectedToolArg]
@@ -39,7 +41,8 @@ async def search(
     result = await wrapped.ainvoke({"query": query})
     return cast(list[dict[str, Any]], result)
 
-def search_langchain_langgraph(
+
+def search_langchain(
     query: str, *, config: Annotated[RunnableConfig, InjectedToolArg]
 ) -> Optional[list[dict[str, Any]]]:
     """Search in LangChain and LangGraph official documentation.
@@ -47,11 +50,26 @@ def search_langchain_langgraph(
     This tool should be used in priority over a generic web search. 
 
     It is is designed to provide comprehensive, accurate, and trusted results. It's particularly useful
-    for answering questions about LangChain, LangGraph and LangSmith
+    for answering questions about LangChain and LangGraph.
+    """
+    # result = retriever.invoke(query)
+    result = langchain_doc_retriever.invoke(query)
+    return cast(list[dict[str, Any]], result)
+
+
+def search_langsmith(
+    query: str, *, config: Annotated[RunnableConfig, InjectedToolArg]
+) -> Optional[list[dict[str, Any]]]:
+    """Search in LangSmith official documentation.
+
+    This tool should be used in priority over a generic web search. 
+
+    It is is designed to provide comprehensive, accurate, and trusted results. It's particularly useful
+    for answering questions about LangSmith
     """
     # result = retriever.invoke(query)
     result = langsmith_doc_retriever.invoke(query)
     return cast(list[dict[str, Any]], result)
 
 
-TOOLS: List[Callable[..., Any]] = [search, search_langchain_langgraph]
+TOOLS: List[Callable[..., Any]] = [search, search_langsmith, search_langchain]
