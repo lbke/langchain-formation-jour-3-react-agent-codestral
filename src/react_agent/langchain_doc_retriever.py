@@ -23,29 +23,26 @@ class ChromaEmbeddings:
         return self.embd(docs)
 
 
-def get_langchain_doc_retriever():
-    embeddings = ChromaEmbeddings()
+embeddings = ChromaEmbeddings()
+documents = [
+    Document("LangChain invokes LLMs"),
+    Document("LangGraph runs agents")
+]
+vector_store = Chroma(
+    collection_name="example_collection",
+    embedding_function=embeddings,
+)
+vector_store.add_documents(documents)
 
-    documents = [
-        Document("LangChain invokes LLMs"),
-        Document("LangGraph runs agents")
-    ]
-
-    vector_store = Chroma(
-        collection_name="example_collection",
-        embedding_function=embeddings,
-    )
-    vector_store.add_documents(documents)
-    retriever = vector_store.as_retriever(search_kwargs={
-        "k": 1
-    })
-    return retriever
+langchain_doc_retriever = vector_store.as_retriever(search_kwargs={
+    "k": 1
+})
 
 
 # Test with
 # python ./src/langchain_doc_retriever.py
 if __name__ == "__main__":
-    retriever = get_langchain_doc_retriever()
+    retriever = langchain_doc_retriever
     res_langchain = retriever.invoke("What is LangChain?")[0]
     res_langgraph = retriever.invoke("What is LangGraph?")[0]
     print(f"Expects LangChain document, got {res_langchain}")

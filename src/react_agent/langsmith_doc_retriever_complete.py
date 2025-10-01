@@ -40,6 +40,8 @@ def get_langsmith_doc_retriever():
     Ingest LangSmith doc
     Can be adapted for other sites with a sitemap
     Will cache the Chroma database in a tmp folder
+
+    BONUS: improve to split the data ingestion step and the vector store creation step
     """
     persist_directory = os.path.join(tempfile.gettempdir(), "langsmith_docs")
     # embd = OpenAIEmbeddings()

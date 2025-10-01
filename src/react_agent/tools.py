@@ -16,14 +16,13 @@ from typing_extensions import Annotated
 from react_agent.configuration import Configuration
 
 # Test version with 2 dummy docs about LangChain and LangGraph
-from react_agent.langchain_doc_retriever import get_langchain_doc_retriever
+from react_agent.langchain_doc_retriever import langchain_doc_retriever
 # Version that actually loads LangChain documentation
 from react_agent.langsmith_doc_retriever_complete import get_langsmith_doc_retriever
 
 # Uncomment to ingest actual LangChain doc,
 # it will take some time to run on the first iteration (in minutes)
 # result = langsmith_doc_retriever.invoke(query)
-langchain_doc_retriever = get_langchain_doc_retriever()
 langsmith_doc_retriever = get_langsmith_doc_retriever()
 
 
